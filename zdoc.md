@@ -25,6 +25,10 @@ DATABASE_URL="mysql://root:devcodegroup@127.0.0.1:3306/tfe?serverVersion=8.0.32&
         php bin/console make:entity UserDonation
         php bin/console make:entity Subscribe
         php bin/console make:entity Anouncement
+        php bin/console make:entity reporting
+        php bin/console make:entity comment
+
+
 
 
 # CHANGER LA VERSION DE PHP
