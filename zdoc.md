@@ -5,7 +5,7 @@
     - IMPLEMENTER LA BASE DE DONNEES
 
         1) configurer la BD dans le fichier .env (MYSQL)
-DATABASE_URL="mysql://root:devcodegroup@127.0.0.1:3306/tfe?serverVersion=8.0.32&charset=utf8mb4"
+        DATABASE_URL="mysql://root:devcodegroup@127.0.0.1:3306/tfe?serverVersion=8.0.32&charset=utf8mb4"
 
         2) Creer la base de donnee en question sur MYSQL
         CREATE DATABASE tfe;
@@ -19,6 +19,15 @@ DATABASE_URL="mysql://root:devcodegroup@127.0.0.1:3306/tfe?serverVersion=8.0.32&
         ont vas proceder avec des commandes sur symfony
 
         alors le fichier principal de travail SRC/
+
+        4) ==================== MIGRATION DE LA BASE DE DONNEES =======================
+
+                
+        
+
+
+
+
 # commandes
         php bin/console make:entity Users (status, createAt)
         php bin/console make:entity Donation
@@ -33,4 +42,6 @@ update-alternatives --list php
 
 sudo update-alternatives --set php /usr/bin/php8.2
 sudo update-alternatives --set php /usr/bin/php8.4
+
+php serve
 
