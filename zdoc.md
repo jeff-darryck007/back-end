@@ -22,7 +22,39 @@
 
         4) ==================== MIGRATION DE LA BASE DE DONNEES =======================
 
-                
+        - LANCER LES MIGRATION
+        php bin/console make:migration
+
+        - LES APPLIQUES A LA BASE DE DONEES
+        php bin/console doctrine:migrations:migrate
+
+        - VERIFIER L'ETAT DES MIGRATIONS
+        php bin/console doctrine:migrations:status
+
+
+        5) IMPLEMENTER UN ENDPOINT
+        Operation de crud sur  users
+
+        - CREATTION D'UN USER
+        - LISTE DES UTILISATEURS
+
+        Devoir a faire :
+
+        - MODIFICATION D'UN USER
+        - SUPPRESSION DES UTILISATEUR
+        - MODIFIER LE STATUS
+        
+
+        CREATION DE CONTROLLEUR
+
+        php bin/console make:controller UsersController
+
+
+
+        https://www.binaryboxtuts.com/programming/php-tutorials/symfony-5-json-web-tokenjwt-authentication/
+
+
+
         
 
 

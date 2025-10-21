@@ -30,7 +30,7 @@ class Users
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $role = null;
+    private ?string $role = null; // visiteur, donateur, admin
 
     #[ORM\Column(length: 255)]
     private ?string $picture = null;
