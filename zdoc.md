@@ -55,11 +55,6 @@
 
 
 
-        
-
-
-
-
 # commandes
         php bin/console make:entity Users (status, createAt)
         php bin/console make:entity Donation
