@@ -51,21 +51,48 @@
 
 
 
-        https://www.binaryboxtuts.com/programming/php-tutorials/symfony-5-json-web-tokenjwt-authentication/
+        https://www.binaryboxtuts.com/programming/php-tutorials/symfony-7-json-web-tokenjwt-authentication/
 
 
 
 # commandes
-        php bin/console make:entity Users (status, createAt)
-        php bin/console make:entity Donation
-        php bin/console make:entity UserDonation
-        php bin/console make:entity Subscribe
-        php bin/console make:entity Anouncement
-        php bin/console make:entity reporting
-        php bin/console make:entity comment
+    php bin/console make:entity Users (status, createAt)
+    php bin/console make:entity Donation
+    php bin/console make:entity UserDonation
+    php bin/console make:entity Subscribe
+    php bin/console make:entity Anouncement
+    php bin/console make:entity reporting
+    php bin/console make:entity comment
 
 
+# Pour configurer l'authentification
 
+    composer require jms/serializer-bundle
+    composer require friendsofsymfony/rest-bundle
+    composer require --dev symfony/maker-bundle    
+    composer require symfony/orm-pack
+    composer require lexik/jwt-authentication-bundle
+
+    Configure JWT Bundle
+
+    	
+    php bin/console lexik:jwt:generate-keypair
+
+    mkdir config/jwt
+
+    openssl genrsa -out config/jwt/private.pem -aes256 4096
+    openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
+
+    # modifier la bd
+    ALTER TABLE DROP COLUNM role;
+    ALTER TABLE users ADD COLUMN roles VARCHAR(255);
+
+    Configure Security.yaml
+
+# ont a implementer
+ - Enregistrement des users avec hash du mot de passe
+ - connexion des user avec generation du token
+ - securité des routes
 
 # CHANGER LA VERSION DE PHP
 

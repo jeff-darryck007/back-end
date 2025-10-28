@@ -2,15 +2,16 @@
 
 namespace App\Entity;
 
+use App\Repository\UsersRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
-
-use App\Repository\UsersRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
-class Users
+class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,44 +24,41 @@ class Users
     #[ORM\Column(length: 255)]
     private ?string $surname = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $role = null; // visiteur, donateur, admin
+    #[ORM\Column(type: 'json')]
+    private array $roles = [];
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $picture = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTime $createAt = null;
+    private ?\DateTimeInterface $createAt = null;
 
-    #[ORM\Column(length: 255)]
-    private ?int $credit = null;
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private ?int $credit = 0;
 
-    #[ORM\Column(length: 255)]
-    private ?int $status = null;
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private ?int $status = 1; // 0 = désactivé, 1 = actif, 2 = supprimé, 3 = en vérification
 
-    /**
-     * @var Collection<int, UserDonation>
-     */
-    #[ORM\OneToMany(targetEntity: UserDonation::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserDonation::class)]
     private Collection $listUserDonation;
 
-    /**
-     * @var Collection<int, Anouncement>
-     */
-    #[ORM\OneToMany(targetEntity: Anouncement::class, mappedBy: 'user')]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Anouncement::class)]
     private Collection $listAnouncements;
 
     public function __construct()
     {
         $this->listUserDonation = new ArrayCollection();
         $this->listAnouncements = new ArrayCollection();
-    } # 0 = desactiver 1= activer 2= supprimer 3= verification
+        $this->createAt = new \DateTime(); // date par défaut
+    }
+
+    // --- GETTERS / SETTERS ---
 
     public function getId(): ?int
     {
@@ -75,7 +73,6 @@ class Users
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -87,7 +84,6 @@ class Users
     public function setSurname(string $surname): static
     {
         $this->surname = $surname;
-
         return $this;
     }
 
@@ -99,7 +95,6 @@ class Users
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -111,19 +106,6 @@ class Users
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
-        return $this;
-    }
-
-    public function getRole(): ?string
-    {
-        return $this->role;
-    }
-
-    public function setRole(string $role): static
-    {
-        $this->role = $role;
-
         return $this;
     }
 
@@ -132,10 +114,9 @@ class Users
         return $this->picture;
     }
 
-    public function setPicture(string $picture): static
+    public function setPicture(?string $picture): static
     {
         $this->picture = $picture;
-
         return $this;
     }
 
@@ -144,10 +125,9 @@ class Users
         return $this->credit;
     }
 
-    public function setCredit(int $credit): static
+    public function setCredit(?int $credit): static
     {
         $this->credit = $credit;
-
         return $this;
     }
 
@@ -156,24 +136,24 @@ class Users
         return $this->status;
     }
 
-    public function setStatus(int $status): static
+    public function setStatus(?int $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 
-    public function getCreateAt(): ?\DateTime
+    public function getCreateAt(): ?\DateTimeInterface
     {
         return $this->createAt;
     }
 
-    public function setCreateAt(\DateTime $createAt): static
+    public function setCreateAt(\DateTimeInterface $createAt): static
     {
         $this->createAt = $createAt;
-
         return $this;
     }
+
+    // --- RELATIONS ---
 
     /**
      * @return Collection<int, UserDonation>
@@ -189,19 +169,16 @@ class Users
             $this->listUserDonation->add($listUserDonation);
             $listUserDonation->setUser($this);
         }
-
         return $this;
     }
 
     public function removeListUserDonation(UserDonation $listUserDonation): static
     {
         if ($this->listUserDonation->removeElement($listUserDonation)) {
-            // set the owning side to null (unless already changed)
             if ($listUserDonation->getUser() === $this) {
                 $listUserDonation->setUser(null);
             }
         }
-
         return $this;
     }
 
@@ -219,20 +196,42 @@ class Users
             $this->listAnouncements->add($listAnouncement);
             $listAnouncement->setUser($this);
         }
-
         return $this;
     }
 
     public function removeListAnouncement(Anouncement $listAnouncement): static
     {
         if ($this->listAnouncements->removeElement($listAnouncement)) {
-            // set the owning side to null (unless already changed)
             if ($listAnouncement->getUser() === $this) {
                 $listAnouncement->setUser(null);
             }
         }
-
         return $this;
     }
 
+    // --- INTERFACES SÉCURITÉ SYMFONY ---
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        // On ajoute le rôle "ROLE_USER" par défaut
+        $roles = $this->roles;
+        $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
+        return $this;
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Si tu stockes des données sensibles temporaires, efface-les ici
+    }
 }

@@ -8,51 +8,63 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // hascher le mot de passe
 use Symfony\Component\HttpFoundation\Request; // corps de la requete
 use Doctrine\ORM\EntityManagerInterface; // manipuler la base de donnees
+use Doctrine\Persistence\ManagerRegistry;
+
 
 use App\Entity\Users; // Entité utilisateur
 use App\Repository\UsersRepository; // repository de l'utilisateur
 
+#[Route('/api', name: 'api_')]
 final class UsersController extends AbstractController
 {
 
-    // INSERER UN UTILISATEUR
-    #[Route('/insert_users', name: 'app_user_create', methods: ['POST'])]
-    public function create(
-        Request $request, // parametre de requete
-        EntityManagerInterface $em, // declaration de l'interface
-        UserPasswordHasherInterface $passwordHasher // class pour hascher le mot de passe
-    ): JsonResponse {
-        // Décoder les données JSON envoyées
-        $data = json_decode($request->getContent(), true);
+    /**
+     * Cette route ne sera jamais réellement exécutée :
+     * le firewall "login" interceptera la requête avant.
+     */
+    #[Route('/login', name: 'login', methods: ['POST'])]
+    public function login(): JsonResponse
+    {
+        return new JsonResponse([
+            'message' => 'Ce point ne devrait pas être atteint — vérifie la configuration de sécurité.'
+        ], 400);
+    }
 
-        if (!$data || !isset($data['email']) || !isset($data['password']) || !isset($data['name']) || !isset($data['surname']) || !isset($data['role'])) {
-            return $this->json(['error' => 'Paramètres manquants'], 400);
-        }
-
-        // Créer un nouvel utilisateur
+    #[Route('/register', name: 'register', methods: 'post')]
+    public function register(ManagerRegistry $doctrine, Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    {
+        $em = $doctrine->getManager();
+        //-- recuperation des valeurs envoyées depuis postman ou le front end web
+        $decoded = json_decode($request->getContent());
+        $email = $decoded->email;
+        $plaintextPassword = $decoded->password;
+        $name = $decoded->name;
+        $surname = $decoded->surname;
+        $role = $decoded->role;
+    
         $user = new Users();
-        $user->setEmail($data['email']);
-        $user->setName($data['name']);
-        $user->setSurname($data['surname']);
-        $user->setRole($data['role']);
+        // hasher le mot de passe
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $plaintextPassword
+        );
+        
+        // charger les information dans l'entite
+        $user->setPassword($hashedPassword);
+        $user->setEmail($email);
+        $user->setName($name);
+        $user->setSurname($surname);
+        $user->setRoles([$role]);
         $user->setPicture(" ");
         $user->setCreateAt(new \DateTime());
         $user->setCredit(0);
-        $user->setStatus(1); // Actif
-        //$hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
-        $user->setPassword($data['password']);
+        $user->setStatus(1);
 
-        // Persister en base ici c'est inserer
+        // inserer en base de donnee
         $em->persist($user);
-        $em->flush(); // mettre a jour la bd
-
-        return $this->json([
-            'message' => 'Utilisateur créé avec succès',
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'name' => $user->getName(),
-            'surname' => $user->getSurname()
-        ], 201);
+        $em->flush();
+    
+        return $this->json(['message' => 'Registered Successfully']);
     }
 
 
@@ -163,7 +175,6 @@ final class UsersController extends AbstractController
             ]
         ], 200);
     }
-
 
 
     // SUPPRIMER UN UTILISATEUR
