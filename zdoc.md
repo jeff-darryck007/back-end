@@ -94,6 +94,10 @@
  - connexion des user avec generation du token
  - securité des routes
 
+# configurer le cors sur le backend
+composer require nelmio/cors-bundle
+
+
 # CHANGER LA VERSION DE PHP
 
 update-alternatives --list php
